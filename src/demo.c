@@ -297,3 +297,100 @@ void demo(char *cfgfile, char *weightfile, float thresh, int cam_index, const ch
 }
 #endif
 
+struct detector_demo {
+    float thresh;
+    float hier_thresh;
+    float nms;
+    char **names;
+    int names_size;
+    network *net;
+    image **alphabet;
+};
+
+detector_demo * make_detector_demo(const char *datacfg,
+                                   const char *cfgfile,
+                                   const char *weightfile,
+                                   const float thresh,
+                                   const float hier_thresh)
+{
+    detector_demo *det = malloc(sizeof(detector_demo));
+    det->thresh = thresh;
+    det->hier_thresh = hier_thresh;
+    list *options = read_data_cfg(datacfg);
+    char *name_list = option_find_str(options, "names", "data/names.list");
+    det->names = get_labels_size(name_list, &det->names_size);
+
+    det->alphabet = load_alphabet();
+    det->net = load_network(cfgfile, weightfile, 0);
+    set_batch_network(det->net, 1);
+    srand(2222222);
+    det->nms=.3;
+
+    free_list_contents(options);
+    free_list(options);
+
+    return det;
+}
+
+void detector_demo_process_image(detector_demo *det, image im)
+{
+    int j;
+    double time;
+    image sized = letterbox_image(im, det->net->w, det->net->h);
+    //image sized = resize_image(im, net->w, net->h);
+    //image sized2 = resize_max(im, net->w);
+    //image sized = crop_image(sized2, -((net->w - sized2.w)/2), -((net->h - sized2.h)/2), net->w, net->h);
+    //resize_network(net, sized.w, sized.h);
+    layer l = det->net->layers[det->net->n-1];
+
+    box *boxes = calloc(l.w*l.h*l.n, sizeof(box));
+    float **probs = calloc(l.w*l.h*l.n, sizeof(float *));
+    for(j = 0; j < l.w*l.h*l.n; ++j) probs[j] = calloc(l.classes + 1, sizeof(float *));
+    float **masks = 0;
+    if (l.coords > 4){
+        masks = calloc(l.w*l.h*l.n, sizeof(float*));
+        for(j = 0; j < l.w*l.h*l.n; ++j) masks[j] = calloc(l.coords-4, sizeof(float *));
+    }
+
+    float *X = sized.data;
+    time=what_time_is_it_now();
+    network_predict(det->net, X);
+    printf("Predicted in %f seconds.\n", what_time_is_it_now()-time);
+    get_region_boxes(l, im.w, im.h, det->net->w, det->net->h, det->thresh, probs, boxes, masks, 0, 0, det->hier_thresh, 1);
+    //if (nms) do_nms_obj(boxes, probs, l.w*l.h*l.n, l.classes, nms);
+    if (det->nms) do_nms_sort(boxes, probs, l.w*l.h*l.n, l.classes, det->nms);
+    draw_detections(im, l.w*l.h*l.n, det->thresh, boxes, probs, masks, det->names, det->alphabet, l.classes);
+
+    free_image(sized);
+    free(boxes);
+    free_ptrs((void **)probs, l.w*l.h*l.n);
+}
+
+void detector_demo_process_file(detector_demo *det,
+                                const char *filename,
+                                const char *outfile)
+{
+    int j;
+    double time;
+    printf("%s: ", filename);
+    image im = load_image_color(filename, 0,0);
+
+    detector_demo_process_image(det, im);
+
+    if (outfile) {
+        save_image(im, outfile);
+    }
+    else {
+        save_image(im, "predictions");
+    }
+
+    free_image(im);
+}
+
+void free_detector_demo(detector_demo *det)
+{
+    free_network(det->net);
+    free_alphabet(det->alphabet);
+    free_ptrs((void**)det->names, det->names_size);
+    free(det);
+}

@@ -560,7 +560,7 @@ typedef struct{
 } box_label;
 
 
-network *load_network(char *cfg, char *weights, int clear);
+network *load_network(const char *cfg, const char *weights, int clear);
 load_args get_base_args(network *net);
 
 void free_data(data d);
@@ -578,9 +578,9 @@ typedef struct list{
 } list;
 
 pthread_t load_data(load_args args);
-list *read_data_cfg(char *filename);
-list *read_cfg(char *filename);
-unsigned char *read_file(char *filename);
+list *read_data_cfg(const char *filename);
+list *read_cfg(const char *filename);
+unsigned char *read_file(const char *filename);
 data resize_data(data orig, int w, int h);
 data *tile_data(data orig, int divs, int size);
 data select_data(data *orig, int *inds);
@@ -649,19 +649,19 @@ void get_detection_boxes(layer l, int w, int h, float thresh, float **probs, box
 char *option_find_str(list *l, char *key, char *def);
 int option_find_int(list *l, char *key, int def);
 
-network *parse_network_cfg(char *filename);
-void save_weights(network *net, char *filename);
-void load_weights(network *net, char *filename);
-void save_weights_upto(network *net, char *filename, int cutoff);
-void load_weights_upto(network *net, char *filename, int start, int cutoff);
+network *parse_network_cfg(const char *filename);
+void save_weights(network *net, const char *filename);
+void load_weights(network *net, const char *filename);
+void save_weights_upto(network *net, const char *filename, int cutoff);
+void load_weights_upto(network *net, const char *filename, int start, int cutoff);
 
 void zero_objectness(layer l);
 void get_region_boxes(layer l, int w, int h, int netw, int neth, float thresh, float **probs, box *boxes, float **masks, int only_objectness, int *map, float tree_thresh, int relative);
 void free_network(network *net);
 void set_batch_network(network *net, int b);
 void set_temp_network(network *net, float t);
-image load_image(char *filename, int w, int h, int c);
-image load_image_color(char *filename, int w, int h);
+image load_image(const char *filename, int w, int h, int c);
+image load_image_color(const char *filename, int w, int h);
 image make_image(int w, int h, int c);
 image resize_image(image im, int w, int h);
 image letterbox_image(image im, int w, int h);
@@ -705,6 +705,7 @@ void draw_detections(image im, int num, float thresh, box *boxes, float **probs,
 
 matrix network_predict_data(network *net, data test);
 image **load_alphabet();
+void free_alphabet(image **alphabet);
 image get_network_image(network *net);
 float *network_predict(network *net, float *input);
 
@@ -714,10 +715,11 @@ float *network_predict_image(network *net, image im);
 void network_detect(network *net, image im, float thresh, float hier_thresh, float nms, box *boxes, float **probs);
 int num_boxes(network *net);
 box *make_boxes(network *net);
-
+void free_boxes(box *boxes);
 void reset_network_state(network *net, int b);
 
-char **get_labels(char *filename);
+char **get_labels(const char *filename);
+char **get_labels_size(const char *filename, int *size);
 void do_nms_sort(box *boxes, float **probs, int total, int classes, float thresh);
 void do_nms_obj(box *boxes, float **probs, int total, int classes, float thresh);
 
@@ -732,7 +734,7 @@ void free_image(image m);
 float train_network(network *net, data d);
 pthread_t load_data_in_thread(load_args args);
 void load_data_blocking(load_args args);
-list *get_paths(char *filename);
+list *get_paths(const char *filename);
 void hierarchy_predictions(float *predictions, int n, tree *hier, int only_leaves, int stride);
 void change_leaves(tree *t, char *leaf_list);
 
@@ -764,5 +766,23 @@ void normalize_array(float *a, int n);
 int *read_intlist(char *s, int *n, int d);
 size_t rand_size_t();
 float rand_normal();
+
+/** Demo **/
+struct detector_demo;
+typedef struct detector_demo detector_demo;
+
+detector_demo * make_detector_demo(const char *datacfg,
+                                   const char *cfgfile,
+                                   const char *weightfile,
+                                   const float thresh,
+                                   const float hier_thresh);
+void detector_demo_process_file(detector_demo *det,
+                                const char *filename,
+                                const char *outfile);
+
+void detector_demo_process_image(detector_demo *det,
+                                 image in);
+
+void free_detector_demo(detector_demo * det);
 
 #endif

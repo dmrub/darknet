@@ -24,6 +24,7 @@ int get_predicted_class_network(network *net);
 void print_network(network *net);
 int resize_network(network *net, int w, int h);
 void calc_network_cost(network *net);
-
+int get_network_n(network *net);
+layer * get_network_layer(network *net, int index);
 #endif
 

@@ -48,7 +48,7 @@ load_args get_base_args(network *net)
     return args;
 }
 
-network *load_network(char *cfg, char *weights, int clear)
+network *load_network(const char *cfg, const char *weights, int clear)
 {
     network *net = parse_network_cfg(cfg);
     if(weights && weights[0] != 0){
@@ -249,6 +249,16 @@ void calc_network_cost(network *netp)
         }
     }
     *net.cost = sum/count;
+}
+
+int get_network_n(network *net)
+{
+    return net->n;
+}
+
+layer * get_network_layer(network *net, int index)
+{
+    return &net->layers[index];
 }
 
 int get_predicted_class_network(network *net)
@@ -506,6 +516,12 @@ box *make_boxes(network *net)
     layer l = net->layers[net->n-1];
     box *boxes = calloc(l.w*l.h*l.n, sizeof(box));
     return boxes;
+}
+
+void free_boxes(box *boxes)
+{
+    fprintf(stderr, "PTR %p\n", boxes);
+    free(boxes);
 }
 
 float **make_probs(network *net)

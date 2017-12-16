@@ -95,3 +95,18 @@ void free_layer(layer l)
     if(l.norms_gpu)               cuda_free(l.norms_gpu);
 #endif
 }
+
+int get_layer_h(layer *l)
+{
+    return l->h;
+}
+
+int get_layer_w(layer *l)
+{
+    return l->w;
+}
+
+int get_layer_n(layer *l)
+{
+    return l->n;
+}

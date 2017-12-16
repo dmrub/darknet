@@ -235,6 +235,19 @@ image **load_alphabet()
     return alphabets;
 }
 
+void free_alphabet(image **alphabet)
+{
+    int i, j;
+    const int nsize = 8;
+    for(j = 0; j < nsize; ++j){
+        for(i = 32; i < 127; ++i){
+            free_image(alphabet[j][i]);
+        }
+        free(alphabet[j]);
+    }
+    free(alphabet);
+}
+
 void draw_detections(image im, int num, float thresh, box *boxes, float **probs, float **masks, char **names, image **alphabet, int classes)
 {
     int i,j;
@@ -556,6 +569,54 @@ void show_image(image p, const char *name)
 #endif
 }
 
+void data_into_image(const unsigned char* imagedata,
+                     int width,
+                     int height,
+                     int bytes_per_pixel,
+                     int bytes_per_line,
+                     image im)
+{
+    int i, j, k;
+
+    for(i = 0; i < height; ++i){
+        for(k= 0; k < bytes_per_pixel; ++k){
+            for(j = 0; j < width; ++j){
+                im.data[k*width*height + i*width + j] = imagedata[i*bytes_per_line + j*bytes_per_pixel + k]/255.;
+            }
+        }
+    }
+}
+
+image data_to_image(const unsigned char* imagedata,
+                    int width,
+                    int height,
+                    int bytes_per_pixel,
+                    int bytes_per_line)
+{
+    image out = make_image(width, height, bytes_per_pixel);
+    data_into_image(imagedata, width, height, bytes_per_pixel, bytes_per_line, out);
+    return out;
+}
+
+void copy_image_into_data(const image im,
+                          unsigned char* imagedata,
+                          int width,
+                          int height,
+                          int bytes_per_pixel,
+                          int bytes_per_line)
+{
+    int i, j, k;
+
+    for(i = 0; i < height; ++i){
+        for(k= 0; k < bytes_per_pixel; ++k){
+            for(j = 0; j < width; ++j){
+                imagedata[i*bytes_per_line + j*bytes_per_pixel + k] = im.data[k*width*height + i*width + j] * 255.0;
+            }
+        }
+    }
+}
+
+
 #ifdef OPENCV
 
 void ipl_into_image(IplImage* src, image im)
@@ -586,7 +647,7 @@ image ipl_to_image(IplImage* src)
     return out;
 }
 
-image load_image_cv(char *filename, int channels)
+image load_image_cv(const char *filename, int channels)
 {
     IplImage* src = 0;
     int flag = -1;
@@ -1432,7 +1493,7 @@ image load_image_stb(char *filename, int channels)
     return im;
 }
 
-image load_image(char *filename, int w, int h, int c)
+image load_image(const char *filename, int w, int h, int c)
 {
 #ifdef OPENCV
     image out = load_image_cv(filename, c);
@@ -1448,7 +1509,7 @@ image load_image(char *filename, int w, int h, int c)
     return out;
 }
 
-image load_image_color(char *filename, int w, int h)
+image load_image_color(const char *filename, int w, int h)
 {
     return load_image(filename, w, h, 3);
 }

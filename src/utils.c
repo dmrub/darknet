@@ -254,7 +254,7 @@ void error(const char *s)
     exit(-1);
 }
 
-unsigned char *read_file(char *filename)
+unsigned char *read_file(const char *filename)
 {
     FILE *fp = fopen(filename, "rb");
     size_t size;
@@ -275,7 +275,7 @@ void malloc_error()
     exit(-1);
 }
 
-void file_error(char *s)
+void file_error(const char *s)
 {
     fprintf(stderr, "Couldn't open file: %s\n", s);
     exit(0);
@@ -327,6 +327,11 @@ void free_ptrs(void **ptrs, int n)
     int i;
     for(i = 0; i < n; ++i) free(ptrs[i]);
     free(ptrs);
+}
+
+void free_ptr(void *ptr)
+{
+    free(ptr);
 }
 
 char *fgetl(FILE *fp)
