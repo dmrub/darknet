@@ -14,6 +14,13 @@ $(function () {
     var connection;
     var urlObject = null;
 
+    var docRoot = new URI(window.location);
+    var wsPath = new URI("./ws/video").absoluteTo(docRoot);
+    if (wsPath.protocol() === "http")
+        wsPath.protocol("ws");
+    else if (wsPath.protocol() === "https")
+        wsPath.protocol("wss");
+
     function initWebCam() {
         var config = {video: true, audio: true};
         var userstream;
@@ -66,10 +73,7 @@ $(function () {
     }
 
     function initConnection() {
-        var host = window.location.host;
-
-        var websocketEndpoint = 'ws://' + host + '/ws/video';
-        connection = new WebSocket(websocketEndpoint);
+        connection = new WebSocket(wsPath.toString());
         connection.binaryType = 'arraybuffer';
 
         connection.addEventListener('message', function (event) {
