@@ -1,0 +1,7 @@
+#!/bin/bash
+
+THIS_DIR=$( (cd "$(dirname -- "$BASH_SOURCE")" && pwd -P) )
+
+export LD_LIBRARY_PATH=$THIS_DIR:$LD_LIBRARY_PATH
+export PYTHONPATH=$THIS_DIR/python:$PYTHONPATH
+exec python python/app.py

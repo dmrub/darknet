@@ -17,7 +17,10 @@ decaf/
 submission/
 cfg/
 darknet
+workspace/
+drivers/
 .fuse*
+*~
 
 # OS Generated #
 .DS_Store*
