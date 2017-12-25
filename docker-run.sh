@@ -5,7 +5,7 @@ THIS_DIR=$( (cd "$(dirname -- "$BASH_SOURCE")" && pwd -P) )
 IMAGE=darknet
 
 set -xe
-docker run --rm -it --privileged --net host -p 5900:5900 -p 5901:5901 \
+docker run --rm -it --privileged --net host \
        --volume=$THIS_DIR/workspace:/workspace \
        --volume=$THIS_DIR/drivers:/opt/drivers \
        --volume=/var/run/dbus:/var/run/dbus \
@@ -15,4 +15,5 @@ docker run --rm -it --privileged --net host -p 5900:5900 -p 5901:5901 \
        --device /dev/bus/usb:/dev/bus/usb:rwm \
        --device /dev/dri:/dev/dri \
        -- \
-       "$IMAGE"
+       "$IMAGE" \
+       "$@"

@@ -95,7 +95,4 @@ WORKDIR /usr/src/darknet
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-CMD . /etc/profile.d/cudaenv.sh; \
-    LD_LIBRARY_PATH=$PWD:$LD_LIBRARY_PATH \
-    PYTHONPATH=$PWD/python:$PYTHONPATH \
-    python/app.py
+CMD ./stream_demo.sh

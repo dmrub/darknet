@@ -1,4 +1,6 @@
 *.o
+*.a
+*.so
 *.dSYM
 *.csv
 *.out
@@ -16,7 +18,9 @@ convnet/
 decaf/
 submission/
 cfg/
+.idea/
 darknet
+yolo.weights
 workspace/
 drivers/
 .fuse*

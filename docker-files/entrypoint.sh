@@ -70,14 +70,6 @@ while [[ $# > 0 ]]; do
             APP_CONFIG+=("${1#*=}")
             shift
             ;;
-        --autorestart)
-            AUTORESTART="$2"
-            shift 2
-            ;;
-        --autorestart=*)
-            AUTORESTART="${1#*=}"
-            shift
-            ;;
         --help-entrypoint)
             usage
             exit
@@ -167,6 +159,10 @@ if [[ -c "/dev/video0" && -n "$APP_USER" ]]; then
             error "Could not create video group with $VIDEO_GID group ID"
         fi
     fi
+fi
+
+if [[ -e /etc/profile.d/cudaenv.sh ]]; then
+    source /etc/profile.d/cudaenv.sh
 fi
 
 if [[ -n "$APP_USER" ]]; then
