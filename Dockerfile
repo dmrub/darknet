@@ -55,7 +55,7 @@ RUN set -xe; \
              /usr/local/bin/install-driver.sh; \
     \
     nvidia_deps='kmod pciutils'; \
-    run_deps='python-pip python-setuptools gstreamer1.0-plugins-good libopencv-dev python-opencv python-gst-1.0'; \
+    run_deps='python-pip python-setuptools gstreamer1.0-plugins-good gstreamer1.0-libav libopencv-dev python-opencv python-gst-1.0'; \
     dev_deps='git-core gcc libc-dev make'; \
     apt-get update; \
     apt-get install -y --no-install-recommends \
