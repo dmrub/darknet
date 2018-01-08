@@ -30,7 +30,16 @@ $(function () {
         }).then(function (stream) {
             mediaStream = stream;
             document.getElementById('video-in').setAttribute('src', window.URL.createObjectURL(mediaStream));
-            var options = {mimeType: 'video/webm', audioBitsPerSecond: 128000};
+            var options;
+            if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+              options = {mimeType: 'video/webm; codecs=vp9'};
+            } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+               options = {mimeType: 'video/webm; codecs=vp8'};
+            } else {
+               alertModal('Media Error', 'Media format WebM and vp8 / vp9 codecs are not supported');
+               return;
+            }
+
             try {
                 recorder = new MediaRecorder(mediaStream, options);
             } catch (err) {
