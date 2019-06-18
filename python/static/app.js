@@ -29,7 +29,9 @@ $(function () {
             video: true
         }).then(function (stream) {
             mediaStream = stream;
-            document.getElementById('video-in').setAttribute('src', window.URL.createObjectURL(mediaStream));
+            document.getElementById('video-in').srcObject = mediaStream;
+            // createObjectURL is deprecated
+            // document.getElementById('video-in').setAttribute('src', window.URL.createObjectURL(mediaStream));
             var options;
             if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
               options = {mimeType: 'video/webm; codecs=vp9'};
