@@ -1,2 +1,3 @@
-tornado
+wheel
+tornado==5.1.1
 futures
