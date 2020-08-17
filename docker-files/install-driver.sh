@@ -2,11 +2,14 @@
 
 # Install Graphics Driver
 # Author: Dmitri Rubinstein <dmitri.rubinstein@dfki.de>
-# Copyright 2016 - 2017, DFKI GmbH
+# Copyright 2016 - 2017, 2020 DFKI GmbH
 # SPDX-License-Identifier: GPL-3.0+
+
+set -eo pipefail
 
 # Load configuration
 if [[ -f "/config.sh" ]]; then
+    # shellcheck disable=SC1091
     source "/config.sh"
 fi
 
@@ -59,7 +62,7 @@ usage() {
 
 MODE=build-time
 
-while [[ $# > 0 ]]; do
+while [[ $# -gt 0 ]]; do
     case "$1" in
         --build-time)
             MODE=build-time
@@ -89,7 +92,7 @@ while [[ $# > 0 ]]; do
             DRIVER_INSTALLER_MODE="$2"
             shift 2
             ;;
-        --driver-installer=*)
+        --driver-installer-mode=*)
             DRIVER_INSTALLER_MODE="${1#*=}"
             shift
             ;;
@@ -277,7 +280,7 @@ nvidia-driver-installer() {
 
             info "NVIDIA driver host version: $NVIDIA_HOST_DRIVER_VERSION"
 
-            if [[ -z "drv_id" ]]; then
+            if [[ -z "$drv_id" ]]; then
                 drv_id=$(get-nvidia-driver-installer-version "$drv_fn")
             fi
 
@@ -302,9 +305,9 @@ nvidia-driver-installer() {
         if type -t nvidia-xconfig &> /dev/null; then
             bus_ids=( $(${SUDO} nvidia-xconfig --query-gpu-info | \
                             sed -n '/PCI BusID/ s/[^:]\+:[[:space:]]*PCI:\([^[:space:]]*\)[[:space:]]*/--busid=\1/p') )
-            info "NVIDIA driver detected bus IDs: ${bus_ids[@]}"
+            info "NVIDIA driver detected bus IDs: ${bus_ids[*]}"
             ${SUDO} nvidia-xconfig -a --use-display-device=None \
-                    --enable-all-gpus "${bus_ids[@]}" --virtual=${WIDTH:-1280}x${HEIGHT:-1024}
+                    --enable-all-gpus "${bus_ids[@]}" --virtual="${WIDTH:-1280}x${HEIGHT:-1024}"
         fi
     fi
 

@@ -1,23 +1,23 @@
 FROM nvidia/cuda:8.0-devel-ubuntu16.04
 
-MAINTAINER Dmitri Rubinstein <dmitri.rubinstein@dfki.de>
-
-ENV DEBIAN_FRONTEND=noninteractive
+LABEL maintainer="Dmitri Rubinstein <dmitri.rubinstein@dfki.de>"
 
 # grab tini for signal processing and zombie killing
-ENV TINI_VERSION v0.16.1
-RUN set -x \
-        && apt-get update \
-        && apt-get install -y wget ca-certificates \
-        && rm -rf /var/lib/apt/lists/* \
-        && wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/$TINI_VERSION/tini" \
-        && wget -O /usr/local/bin/tini.asc "https://github.com/krallin/tini/releases/download/$TINI_VERSION/tini.asc" \
-        && export GNUPGHOME="$(mktemp -d)" \
-        && gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 6380DC428747F6C393FEACA59A84159D7001A4E5 \
-        && gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini \
-        && rm -r "$GNUPGHOME" /usr/local/bin/tini.asc \
-        && chmod +x /usr/local/bin/tini \
-        && tini -h
+ENV TINI_VERSION v0.19.0
+RUN set -eux; \
+        export DEBIAN_FRONTEND=noninteractive; \
+        apt-get update -y; \
+        apt-get install -y --no-install-recommends wget ca-certificates; \
+        rm -rf /var/lib/apt/lists/*; \
+        wget -O /usr/local/bin/tini "https://github.com/krallin/tini/releases/download/$TINI_VERSION/tini"; \
+        wget -O /usr/local/bin/tini.asc "https://github.com/krallin/tini/releases/download/$TINI_VERSION/tini.asc"; \
+        export GNUPGHOME="$(mktemp -d)"; \
+        gpg --keyserver ha.pool.sks-keyservers.net --recv-keys 6380DC428747F6C393FEACA59A84159D7001A4E5; \
+        gpg --batch --verify /usr/local/bin/tini.asc /usr/local/bin/tini; \
+        { command -v gpgconf > /dev/null && gpgconf --kill all || :; }; \
+        rm -rf "$GNUPGHOME" /usr/local/bin/tini.asc; \
+        chmod +x /usr/local/bin/tini; \
+        tini -h
 
 COPY docker-files/entrypoint.sh \
      docker-files/install-driver.sh \
@@ -32,8 +32,9 @@ ENV APP_USER ${APP_USER:-darknet}
 
 # Add the APP_USER user
 
-RUN set -ex; \
+RUN set -eux; \
     \
+    export DEBIAN_FRONTEND=noninteractive; \
     apt-get update; \
     apt-get install -y sudo; \
     rm -rf /var/lib/apt/lists/*; \
@@ -49,8 +50,9 @@ RUN set -ex; \
 COPY . /usr/src/darknet
 WORKDIR /usr/src/darknet
 
-RUN set -xe; \
+RUN set -eux; \
     \
+    export DEBIAN_FRONTEND=noninteractive; \
     chmod +x /usr/local/bin/entrypoint.sh \
              /usr/local/bin/install-driver.sh; \
     \

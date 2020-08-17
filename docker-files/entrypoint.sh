@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -eo pipefail
+
 env >&2
 
 message() {
@@ -19,7 +21,7 @@ fatal() {
     exit 1
 }
 
-message "info: EUID=$EUID args: $@"
+message "info: EUID=$EUID args: $*"
 
 if [[ $EUID -ne 0 ]]; then
     # change user back to root
@@ -52,7 +54,7 @@ usage() {
     echo "      --help-entrypoint      Display this help and exit"
 }
 
-while [[ $# > 0 ]]; do
+while [[ $# -gt 0 ]]; do
     case "$1" in
         --app-user)
             APP_USER="$2"
@@ -88,7 +90,7 @@ while [[ $# > 0 ]]; do
 done
 
 info "APP_USER=$APP_USER"
-info "APP_CONFIG=(${APP_CONFIG[@]})"
+info "APP_CONFIG=(${APP_CONFIG[*]})"
 info "ENTRYPOINT_CONFIG=$ENTRYPOINT_CONFIG"
 
 for ((i = 0; i < ${#APP_CONFIG[@]}; i++)); do
@@ -96,6 +98,7 @@ for ((i = 0; i < ${#APP_CONFIG[@]}; i++)); do
 done
 
 if [[ -f "${ENTRYPOINT_CONFIG}" ]]; then
+    # shellcheck disable=SC1090
     source "${ENTRYPOINT_CONFIG}"
 fi
 
@@ -103,8 +106,12 @@ fi
 
 message "Install graphics driver"
 
-if ! /usr/local/bin/install-driver.sh --run-time; then
-    fatal "Could not install graphics driver"
+if [[ -n "$DRIVER_INSTALLER_TYPE" && "$DRIVER_INSTALLER_TYPE" != "none" ]]; then
+    if ! /usr/local/bin/install-driver.sh --run-time; then
+        fatal "Could not install graphics driver"
+    fi
+else
+    message "No driver installer type specified (DRIVER_INSTALLER_TYPE=$DRIVER_INSTALLER_TYPE), a driver will not be installed"
 fi
 
 # Fix permissions for /tmp directory
@@ -117,8 +124,10 @@ if [[ -n "$APP_USER" ]] && type -t setfacl &> /dev/null; then
 fi
 
 # Initialize NVIDIA
-if ! nvidia-modprobe -u -c=0; then
-    fatal "Failed to initialize CUDA, run 'nvidia-modprobe -u -c=0' on host machine"
+if ! nvidia-smi -L; then
+    if ! nvidia-modprobe -u -c=0; then
+        fatal "Failed to initialize CUDA, run 'nvidia-modprobe -u -c=0' on host machine"
+    fi
 fi
 
 # Setup /dev/video0
@@ -151,6 +160,7 @@ if [[ -c "/dev/video0" && -n "$APP_USER" ]]; then
         if _add_video_group; then
             if _add_video_user; then
                 info "Added user $APP_USER to video group with GID $VIDEO_GID"
+                # shellcheck disable=SC2034
                 ADDED_VIDEO_GROUP=true
             else
                 error "Could not add user $APP_USER to video group"
@@ -162,6 +172,7 @@ if [[ -c "/dev/video0" && -n "$APP_USER" ]]; then
 fi
 
 if [[ -e /etc/profile.d/cudaenv.sh ]]; then
+    # shellcheck disable=SC1091
     source /etc/profile.d/cudaenv.sh
 fi
 

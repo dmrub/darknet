@@ -1,3 +1,4 @@
+# shellcheck shell=sh
 for CUDA_HOME in /usr/local/cuda /usr/local/cuda-*; do
     if [ -d "$CUDA_HOME" ]; then
         export CUDA_HOME
@@ -16,7 +17,7 @@ done
 
 if [ "$PS1" ]; then
     # Interactive mode
-    if [ "$BASH" ] && [ "$BASH" != "/bin/sh" ]; then
+    if [ "${BASH:-}" ] && [ "$BASH" != "/bin/sh" ]; then
         :
     fi
 fi

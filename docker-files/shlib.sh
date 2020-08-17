@@ -1,7 +1,8 @@
+# shellcheck shell=bash
 # Shell Library
 
 error() {
-    echo >&2 "* Error: $@"
+    echo >&2 "* Error: $*"
 }
 
 fatal() {
@@ -90,7 +91,7 @@ update-git-repo() {
     fi
 
     if [[ -e "$source_dir" ]]; then
-        cd "$source_dir"
+        cd "$source_dir" || return 1
 
         if [[ "$git_cmd" == "pull" && "$git_reset" == "true" ]]; then
             git reset --hard HEAD
@@ -113,7 +114,7 @@ update-git-repo() {
             git "$git_cmd" $git_cmd_opt
             exit_code=$?
         fi
-        cd - &> /dev/null
+        cd - &> /dev/null || return 1
         # simple error check for incomplete git clone
         if [[ $exit_code -ne 0 && ! -e "$source_dir/.git" ]]; then
             error "'git $git_cmd $git_cmd_opt' failed !"
@@ -195,7 +196,8 @@ check-sha1-hash() {
     local fn=$1
     local hash=$2
     echo "Verify SHA1 hash of file $fn ..."
-    local dest_hash=$(sha1hash "$fn")
+    local dest_hash
+    dest_hash=$(sha1hash "$fn")
     if [[ "$dest_hash" == "$hash" ]]; then
         echo "SHA1 hash verified ($hash) !"
     else
