@@ -2,6 +2,15 @@ FROM nvidia/cuda:8.0-devel-ubuntu16.04
 
 LABEL maintainer="Dmitri Rubinstein <dmitri.rubinstein@dfki.de>"
 
+# Download YOLO weights
+WORKDIR /usr/src/darknet
+RUN set -eux; \
+        export DEBIAN_FRONTEND=noninteractive; \
+        apt-get update -y; \
+        apt-get install -y --no-install-recommends wget ca-certificates; \
+        rm -rf /var/lib/apt/lists/*; \
+        wget https://pjreddie.com/media/files/yolo.weights;
+
 # grab tini for signal processing and zombie killing
 ENV TINI_VERSION v0.19.0
 RUN set -eux; \
@@ -78,7 +87,6 @@ RUN set -eux; \
     sed -i 's/GPU=0/GPU=1/' Makefile; \
     sed -ie "/LDFLAGS=/s|\$| -L$CUDA_STUBS|" Makefile; \
     make; \
-    wget https://pjreddie.com/media/files/yolo.weights; \
     \
     pip install -r python/requirements.txt; \
     \
